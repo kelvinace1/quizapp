@@ -1,0 +1,89 @@
+{% extends "quizapp/base.html" %}
+
+{% block title %}Create Course + Quizzes + Sections + Questions{% endblock %}
+
+{% block content %}
+<div class="card p-4 shadow-sm">
+  <h2 class="mb-4 fw-bold text-primary">🚀 Create Course & Related Content</h2>
+  <form method="post" novalidate>
+    {% csrf_token %}
+
+    <!-- Course Form -->
+    <div class="mb-4">
+      <h4 class="mb-3">📚 Course Details</h4>
+      {{ course_form.non_field_errors }}
+      {% for field in course_form %}
+        <div class="mb-3">
+          <label class="form-label fw-semibold" for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field }}
+          {% if field.errors %}
+            <div class="text-danger small mt-1">{{ field.errors|join:", " }}</div>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+
+    <!-- Quiz Formset -->
+    <div class="mb-4">
+      <h4 class="mb-3">📝 Quizzes</h4>
+      {{ quiz_formset.management_form }}
+      {% for form in quiz_formset %}
+        <div class="card mb-3 p-3 bg-light border rounded shadow-sm">
+          {{ form.non_field_errors }}
+          {% for field in form %}
+            <div class="mb-2">
+              <label class="form-label fw-semibold" for="{{ field.id_for_label }}">{{ field.label }}</label>
+              {{ field }}
+              {% if field.errors %}
+                <div class="text-danger small mt-1">{{ field.errors|join:", " }}</div>
+              {% endif %}
+            </div>
+          {% endfor %}
+        </div>
+      {% endfor %}
+    </div>
+
+    <!-- Section Formset -->
+    <div class="mb-4">
+      <h4 class="mb-3">📂 Sections</h4>
+      {{ section_formset.management_form }}
+      {% for form in section_formset %}
+        <div class="card mb-3 p-3 bg-light border rounded shadow-sm">
+          {{ form.non_field_errors }}
+          {% for field in form %}
+            <div class="mb-2">
+              <label class="form-label fw-semibold" for="{{ field.id_for_label }}">{{ field.label }}</label>
+              {{ field}}
+              {% if field.errors %}
+                <div class="text-danger small mt-1">{{ field.errors|join:", " }}</div>
+              {% endif %}
+            </div>
+          {% endfor %}
+        </div>
+      {% endfor %}
+    </div>
+
+    <!-- Question Formset -->
+    <div class="mb-4">
+      <h4 class="mb-3">❓ Questions</h4>
+      {{ question_formset.management_form }}
+      {% for form in question_formset %}
+        <div class="card mb-3 p-3 bg-light border rounded shadow-sm">
+          {{ form.non_field_errors }}
+          {% for field in form %}
+            <div class="mb-2">
+              <label class="form-label fw-semibold" for="{{ field.id_for_label }}">{{ field.label }}</label>
+              {{ field }}
+              {% if field.errors %}
+                <div class="text-danger small mt-1">{{ field.errors|join:", " }}</div>
+              {% endif %}
+            </div>
+          {% endfor %}
+        </div>
+      {% endfor %}
+    </div>
+
+    <button type="submit" class="btn btn-primary btn-lg w-100">Create</button>
+  </form>
+</div>
+{% endblock %}

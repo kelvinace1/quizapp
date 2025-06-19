@@ -1,0 +1,477 @@
+{% extends 'quizapp/base.html' %}
+{% block title %}Quiz Result{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8 col-md-10">
+    <!-- Main Result Card -->
+    <div class="card mb-4 result-card">
+      <div class="card-body p-5">
+        <!-- Header with animated icon -->
+        <div class="text-center mb-5">
+          <div class="result-icon mb-3">
+            {% if passed %}
+              <i class="fas fa-trophy text-warning"></i>
+            {% else %}
+              <i class="fas fa-redo-alt text-info"></i>
+            {% endif %}
+          </div>
+          <h2 class="mb-3 result-title">
+            Section Result
+          </h2>
+          <div class="difficulty-badge">
+            <span class="badge difficulty-{{ section.difficulty|lower }}">
+              <i class="fas fa-star me-2"></i>{{ section.difficulty|title }} Level
+            </span>
+          </div>
+        </div>
+
+        <!-- Score Chart Container -->
+        <div class="chart-container mb-5">
+          <div class="chart-wrapper">
+            <canvas id="scoreChart"></canvas>
+            <div class="chart-center">
+              <div class="score-display">
+                <span class="score-value">{{ score }}%</span>
+                <span class="score-label">Score</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Result Status -->
+        <div class="text-center mb-4">
+          {% if passed %}
+            <div class="result-message success-message">
+              <div class="message-icon">
+                <i class="fas fa-check-circle"></i>
+              </div>
+              <h4 class="message-title">Congratulations!</h4>
+              <p class="message-text">You've successfully passed this section with flying colors!</p>
+            </div>
+          {% else %}
+            <div class="result-message retry-message">
+              <div class="message-icon">
+                <i class="fas fa-heart"></i>
+              </div>
+              <h4 class="message-title">Keep Going!</h4>
+              <p class="message-text">Don't give up! Every expert was once a beginner.</p>
+            </div>
+          {% endif %}
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons text-center">
+          {% if passed %}
+            {% if next_section %}
+              <a href="{% url 'take_section' next_section.id %}" class="btn btn-primary btn-action mb-3">
+                <i class="fas fa-arrow-right me-2"></i>
+                Continue to {{ next_section.difficulty|title }} Level
+              </a>
+            {% else %}
+            
+            {% endif %}
+          {% else %}
+            <a href="{% url 'take_section' section.id %}" class="btn btn-warning btn-action mb-3">
+              <i class="fas fa-redo me-2"></i>
+              Try Again
+            </a>
+          {% endif %}
+
+          <div class="secondary-actions">
+            <a href="{% url 'quiz_list' course_id=course.id %}" class="btn btn-outline-secondary btn-action">
+              <i class="fas fa-list me-2"></i>
+              Back to Sections
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Performance Insights Card -->
+    <div class="card performance-card">
+      <div class="card-body p-4">
+        <h5 class="card-title mb-3">
+          <i class="fas fa-chart-line me-2"></i>
+          Performance Insights
+        </h5>
+        <div class="row g-3">
+          <div class="col-6">
+            <div class="insight-item">
+              <div class="insight-icon">
+                <i class="fas fa-percentage"></i>
+              </div>
+              <div class="insight-content">
+                <span class="insight-value">{{ score }}%</span>
+                <span class="insight-label">Your Score</span>
+              </div>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="insight-item">
+              <div class="insight-icon">
+                <i class="fas fa-target"></i>
+              </div>
+              <div class="insight-content">
+                <span class="insight-value">50%</span>
+                <span class="insight-label">Pass Mark</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+/* Result-specific styles that extend the base theme */
+.result-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.result-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--primary-gradient);
+}
+
+.result-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+  animation: bounceIn 0.8s ease-out;
+}
+
+@keyframes bounceIn {
+  0% { transform: scale(0.3); opacity: 0; }
+  50% { transform: scale(1.05); }
+  70% { transform: scale(0.9); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.result-title {
+  font-weight: 700;
+  background: var(--primary-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.difficulty-badge {
+  margin-bottom: 2rem;
+}
+
+.difficulty-easy {
+  background: var(--success-gradient) !important;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 25px;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.difficulty-medium {
+  background: var(--warning-gradient) !important;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 25px;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.difficulty-hard {
+  background: var(--secondary-gradient) !important;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 25px;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.chart-container {
+  position: relative;
+  max-width: 300px;
+  margin: 0 auto;
+}
+
+.chart-wrapper {
+  position: relative;
+  height: 300px;
+}
+
+.chart-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+.score-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.score-value {
+  font-size: 2.5rem;
+  font-weight: 800;
+  background: var(--primary-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1;
+}
+
+.score-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-secondary-light);
+  margin-top: 0.25rem;
+}
+
+.dark-mode .score-label {
+  color: var(--text-secondary-dark);
+}
+
+.result-message {
+  padding: 2rem;
+  border-radius: 20px;
+  margin-bottom: 2rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.success-message {
+  background: linear-gradient(135deg, rgba(79, 172, 254, 0.1) 0%, rgba(0, 242, 254, 0.1) 100%);
+  border: 2px solid rgba(79, 172, 254, 0.2);
+}
+
+.retry-message {
+  background: linear-gradient(135deg, rgba(240, 147, 251, 0.1) 0%, rgba(245, 87, 108, 0.1) 100%);
+  border: 2px solid rgba(245, 87, 108, 0.2);
+}
+
+.message-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.success-message .message-icon {
+  color: #4facfe;
+}
+
+.retry-message .message-icon {
+  color: #f5576c;
+}
+
+.message-title {
+  font-weight: 700;
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.message-text {
+  font-size: 1.1rem;
+  margin-bottom: 0;
+  opacity: 0.8;
+}
+
+.btn-action {
+  padding: 1rem 2rem;
+  font-weight: 600;
+  border-radius: 16px;
+  min-width: 200px;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  display: inline-block;
+  margin: 0.5rem;
+}
+
+.btn-action:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.completion-message {
+  padding: 1.5rem;
+  background: linear-gradient(135deg, rgba(255, 234, 167, 0.3) 0%, rgba(250, 177, 160, 0.3) 100%);
+  border-radius: 16px;
+  border: 2px solid rgba(255, 193, 7, 0.3);
+}
+
+.completion-icon {
+  font-size: 2.5rem;
+  color: #ffd700;
+  margin-bottom: 1rem;
+}
+
+.completion-text {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.performance-card {
+  margin-bottom: 2rem;
+}
+
+.insight-item {
+  display: flex;
+  align-items: center;
+  padding: 1rem;
+  background: var(--glass-bg);
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+.dark-mode .insight-item {
+  background: var(--glass-bg-dark);
+}
+
+.insight-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.insight-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: var(--primary-gradient);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.2rem;
+  margin-right: 1rem;
+}
+
+.insight-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.insight-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.insight-label {
+  font-size: 0.85rem;
+  opacity: 0.7;
+  margin-top: 0.25rem;
+}
+
+@media (max-width: 768px) {
+  .card-body {
+    padding: 2rem 1.5rem !important;
+  }
+  
+  .result-icon {
+    font-size: 3rem;
+  }
+  
+  .score-value {
+    font-size: 2rem;
+  }
+  
+  .chart-wrapper {
+    height: 250px;
+  }
+  
+  .btn-action {
+    min-width: auto;
+    width: 100%;
+    margin: 0.25rem 0;
+  }
+  
+  .message-title {
+    font-size: 1.25rem;
+  }
+  
+  .message-text {
+    font-size: 1rem;
+  }
+}
+</style>
+
+<!-- Chart.js Script with Modern Styling -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const ctx = document.getElementById('scoreChart').getContext('2d');
+  const scoreValue = {{ score }};
+  const isDarkMode = document.body.classList.contains('dark-mode');
+  
+  // Create gradient for the chart
+  const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+  gradient.addColorStop(0, '#667eea');
+  gradient.addColorStop(1, '#764ba2');
+  
+  const remainingGradient = ctx.createLinearGradient(0, 0, 0, 300);
+  remainingGradient.addColorStop(0, isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)');
+  remainingGradient.addColorStop(1, isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.02)');
+
+  new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: ['Your Score', 'Remaining'],
+      datasets: [{
+        label: 'Quiz Score',
+        data: [scoreValue, 100 - scoreValue],
+        backgroundColor: [gradient, remainingGradient],
+        borderWidth: 0,
+        cutout: '75%',
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: false
+        },
+        tooltip: {
+          backgroundColor: isDarkMode ? 'rgba(30, 30, 30, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+          titleColor: isDarkMode ? '#f7fafc' : '#2d3748',
+          bodyColor: isDarkMode ? '#e2e8f0' : '#4a5568',
+          borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+          borderWidth: 1,
+          cornerRadius: 12,
+          displayColors: false,
+          callbacks: {
+            label: function(context) {
+              return context.label + ': ' + context.parsed + '%';
+            }
+          }
+        }
+      },
+      animation: {
+        animateRotate: true,
+        duration: 2000,
+        easing: 'easeOutQuart'
+      }
+    }
+  });
+  
+  // Add smooth entrance animation to cards
+  const cards = document.querySelectorAll('.card');
+  cards.forEach((card, index) => {
+    card.style.opacity = '0';
+    card.style.transform = 'translateY(30px)';
+    setTimeout(() => {
+      card.style.transition = 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
+      card.style.opacity = '1';
+      card.style.transform = 'translateY(0)';
+    }, index * 200);
+  });
+});
+</script>
+{% endblock %}

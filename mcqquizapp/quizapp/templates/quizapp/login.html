@@ -1,0 +1,515 @@
+{% extends "quizapp/base.html" %}
+{% block title %}Login - CALEB Quiz{% endblock %}
+{% block content %}
+<div class="auth-container">
+  <div class="auth-card card">
+    <!-- Left side: Animated Quiz Illustration -->
+    <div class="auth-image-section d-none d-md-flex">
+      <div class="quiz-illustration">
+        <div class="floating-elements">
+          <div class="quiz-card animate-float">
+            <i class="fas fa-question-circle"></i>
+            <div class="quiz-options">
+              <div class="option active"></div>
+              <div class="option"></div>
+              <div class="option"></div>
+            </div>
+          </div>
+          <div class="brain-icon animate-pulse">
+            <i class="fas fa-brain"></i>
+          </div>
+          <div class="trophy-icon animate-bounce">
+            <i class="fas fa-trophy"></i>
+          </div>
+          <div class="chart-icon animate-slide">
+            <i class="fas fa-chart-line"></i>
+          </div>
+        </div>
+        <div class="background-shapes">
+          <div class="shape shape-1"></div>
+          <div class="shape shape-2"></div>
+          <div class="shape shape-3"></div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Right side: Login Form -->
+    <div class="auth-form-section">
+      <div class="auth-header">
+        <div class="welcome-icon">
+          <i class="fas fa-graduation-cap"></i>
+        </div>
+        <h2 class="auth-title">Welcome Back!</h2>
+        <p class="auth-subtitle">Log in to access your quizzes and track progress.</p>
+      </div>
+      
+      <form method="post" class="auth-form" novalidate>
+        {% csrf_token %}
+        <div class="form-group">
+          <label for="{{ form.username.id_for_label }}" class="form-label">
+            <i class="fas fa-user me-2"></i>Username
+          </label>
+          {{ form.username }}
+          {% if form.username.errors %}
+            <div class="error-message">
+              {% for error in form.username.errors %}
+                <small class="text-danger"><i class="fas fa-exclamation-circle me-1"></i>{{ error }}</small>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+        
+        <div class="form-group">
+          <label for="{{ form.password.id_for_label }}" class="form-label">
+            <i class="fas fa-lock me-2"></i>Password
+          </label>
+          {{ form.password }}
+          {% if form.password.errors %}
+            <div class="error-message">
+              {% for error in form.password.errors %}
+                <small class="text-danger"><i class="fas fa-exclamation-circle me-1"></i>{{ error }}</small>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+        
+        {% if form.non_field_errors %}
+          <div class="alert alert-danger d-flex align-items-center">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <div>
+              {% for error in form.non_field_errors %}
+                {{ error }}
+              {% endfor %}
+            </div>
+          </div>
+        {% endif %}
+        
+        <button type="submit" class="btn btn-primary auth-submit-btn">
+          <i class="fas fa-sign-in-alt me-2"></i>
+          <span>Login</span>
+        </button>
+      </form>
+      
+      <div class="auth-footer">
+        <p class="auth-link-text">
+          Don't have an account? 
+          <a href="{% url 'register' %}" class="auth-link">
+            <i class="fas fa-user-plus me-1"></i>Sign up here
+          </a>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .auth-container {
+    min-height: calc(100vh - 160px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1rem;
+  }
+
+  .auth-card {
+    max-width: 1000px;
+    width: 100%;
+    min-height: 600px;
+    display: flex;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* Left side illustration */
+  .auth-image-section {
+    flex: 1;
+    background: var(--primary-gradient);
+    position: relative;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem;
+    overflow: hidden;
+  }
+
+  .quiz-illustration {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .floating-elements {
+    position: relative;
+    z-index: 2;
+  }
+
+  .quiz-card {
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(20px);
+    border-radius: 20px;
+    padding: 2rem;
+    text-align: center;
+    margin-bottom: 2rem;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+  }
+
+  .quiz-card i {
+    font-size: 3rem;
+    color: white;
+    margin-bottom: 1rem;
+    display: block;
+  }
+
+  .quiz-options {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .option {
+    height: 8px;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 4px;
+    transition: all 0.3s ease;
+  }
+
+  .option.active {
+    background: rgba(255, 255, 255, 0.8);
+  }
+
+  .brain-icon, .trophy-icon, .chart-icon {
+    position: absolute;
+    width: 60px;
+    height: 60px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .brain-icon {
+    top: 20%;
+    left: 20%;
+  }
+
+  .trophy-icon {
+    top: 30%;
+    right: 20%;
+  }
+
+  .chart-icon {
+    bottom: 20%;
+    left: 30%;
+  }
+
+  .brain-icon i, .trophy-icon i, .chart-icon i {
+    color: white;
+    font-size: 1.5rem;
+  }
+
+  .background-shapes {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+  }
+
+  .shape {
+    position: absolute;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+  }
+
+  .shape-1 {
+    width: 100px;
+    height: 100px;
+    top: 10%;
+    right: 10%;
+    animation: float 6s ease-in-out infinite;
+  }
+
+  .shape-2 {
+    width: 150px;
+    height: 150px;
+    bottom: 10%;
+    right: 30%;
+    animation: float 8s ease-in-out infinite reverse;
+  }
+
+  .shape-3 {
+    width: 80px;
+    height: 80px;
+    top: 60%;
+    left: 10%;
+    animation: float 7s ease-in-out infinite;
+  }
+
+  /* Right side form */
+  .auth-form-section {
+    flex: 1;
+    padding: 3rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    background: var(--surface-light);
+  }
+
+  body.dark-mode .auth-form-section {
+    background: var(--surface-dark);
+  }
+
+  .auth-header {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+
+  .welcome-icon {
+    width: 80px;
+    height: 80px;
+    background: var(--primary-gradient);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+  }
+
+  .welcome-icon i {
+    font-size: 2rem;
+    color: white;
+  }
+
+  .auth-title {
+    font-size: 2rem;
+    font-weight: 700;
+    background: var(--primary-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 0.5rem;
+  }
+
+  .auth-subtitle {
+    color: var(--text-secondary-light);
+    font-size: 1.1rem;
+    font-weight: 400;
+  }
+
+  body.dark-mode .auth-subtitle {
+    color: var(--text-secondary-dark);
+  }
+
+  .form-group {
+    margin-bottom: 1.5rem;
+  }
+
+  .form-label {
+    display: flex;
+    align-items: center;
+    font-weight: 600;
+    color: var(--text-primary-light);
+    margin-bottom: 0.75rem;
+    font-size: 0.95rem;
+  }
+
+  body.dark-mode .form-label {
+    color: var(--text-primary-dark);
+  }
+
+  .form-label i {
+    color: var(--primary-gradient);
+    background: var(--primary-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .auth-form input {
+    width: 100%;
+    padding: 1rem 1.25rem;
+    border: 2px solid var(--border-light);
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.9);
+    font-weight: 500;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+  }
+
+  .auth-form input:focus {
+    outline: none;
+    border-color: transparent;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+    background: rgba(255, 255, 255, 0.95);
+    transform: translateY(-2px);
+  }
+
+  body.dark-mode .auth-form input {
+    background: rgba(30, 30, 30, 0.9);
+    border-color: var(--border-dark);
+    color: var(--text-primary-dark);
+  }
+
+  body.dark-mode .auth-form input::placeholder {
+    color: var(--text-secondary-dark);
+  }
+
+  body.dark-mode .auth-form input:focus {
+    background: rgba(30, 30, 30, 0.95);
+  }
+
+  .auth-submit-btn {
+    width: 100%;
+    padding: 1rem 2rem;
+    font-size: 1.1rem;
+    margin-top: 1rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .auth-submit-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s ease;
+  }
+
+  .auth-submit-btn:hover::before {
+    left: 100%;
+  }
+
+  .error-message {
+    margin-top: 0.5rem;
+  }
+
+  .auth-footer {
+    text-align: center;
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--border-light);
+  }
+
+  body.dark-mode .auth-footer {
+    border-top-color: var(--border-dark);
+  }
+
+  .auth-link-text {
+    color: var(--text-secondary-light);
+    margin: 0;
+  }
+
+  body.dark-mode .auth-link-text {
+    color: var(--text-secondary-dark);
+  }
+
+  .auth-link {
+    color: var(--primary-gradient);
+    background: var(--primary-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+  }
+
+  .auth-link:hover {
+    text-decoration: underline;
+    transform: translateY(-1px);
+  }
+
+  /* Animations */
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-20px); }
+  }
+
+  @keyframes animate-float {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-10px) rotate(5deg); }
+  }
+
+  @keyframes animate-pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+  }
+
+  @keyframes animate-bounce {
+    0%, 100% { transform: translateY(0px); }
+    25% { transform: translateY(-5px); }
+    50% { transform: translateY(-10px); }
+    75% { transform: translateY(-5px); }
+  }
+
+  @keyframes animate-slide {
+    0%, 100% { transform: translateX(0px); }
+    50% { transform: translateX(10px); }
+  }
+
+  .animate-float {
+    animation: animate-float 4s ease-in-out infinite;
+  }
+
+  .animate-pulse {
+    animation: animate-pulse 3s ease-in-out infinite;
+  }
+
+  .animate-bounce {
+    animation: animate-bounce 2s ease-in-out infinite;
+  }
+
+  .animate-slide {
+    animation: animate-slide 5s ease-in-out infinite;
+  }
+
+  /* Responsive design */
+  @media (max-width: 768px) {
+    .auth-container {
+      padding: 1rem;
+      min-height: calc(100vh - 120px);
+    }
+
+    .auth-card {
+      min-height: auto;
+    }
+
+    .auth-form-section {
+      padding: 2rem 1.5rem;
+    }
+
+    .welcome-icon {
+      width: 60px;
+      height: 60px;
+    }
+
+    .welcome-icon i {
+      font-size: 1.5rem;
+    }
+
+    .auth-title {
+      font-size: 1.75rem;
+    }
+  }
+
+  @media (max-width: 576px) {
+    .auth-form-section {
+      padding: 1.5rem 1rem;
+    }
+
+    .auth-title {
+      font-size: 1.5rem;
+    }
+  }
+</style>
+{% endblock %}

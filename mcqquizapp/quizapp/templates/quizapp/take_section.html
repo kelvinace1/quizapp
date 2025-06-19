@@ -1,0 +1,425 @@
+{% extends 'quizapp/base.html' %}
+{% block title %}{{ section.difficulty|title }} Section{% endblock %}
+
+{% block content %}
+<div class="container my-5" style="max-width: 800px;">
+  <!-- Modern Header with Gradient -->
+  <div class="card mb-5" style="background: var(--primary-gradient); border: none; overflow: hidden;">
+    <div class="card-body text-white position-relative">
+      <div class="position-absolute top-0 end-0 opacity-25">
+        <i class="fas fa-brain" style="font-size: 6rem;"></i>
+      </div>
+      <h2 class="mb-2 fw-bold position-relative z-1">
+        <i class="fas fa-graduation-cap me-3"></i>{{ section.quiz.title }}
+      </h2>
+      <p class="mb-0 fs-5 opacity-90 position-relative z-1">
+        <i class="fas fa-layer-group me-2"></i>{{ section.difficulty|title }} Questions
+      </p>
+    </div>
+  </div>
+
+  <!-- Messages with Modern Styling -->
+  {% if messages %}
+  <div class="mb-4">
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert" style="border-radius: 20px; backdrop-filter: blur(10px); border: none; box-shadow: 0 8px 25px rgba(0,0,0,0.1);">
+        <i class="fas fa-info-circle me-2"></i>{{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- Quiz Form -->
+  <form method="post" novalidate id="quizForm">
+    {% csrf_token %}
+    
+    <!-- Progress Indicator -->
+    <div class="card mb-4" style="background: var(--glass-bg); backdrop-filter: blur(20px); border: 1px solid var(--glass-border); border-radius: 20px;">
+      <div class="card-body py-3">
+        <div class="d-flex justify-content-between align-items-center">
+          <span class="fw-semibold">
+            <i class="fas fa-tasks me-2 text-primary"></i>Progress
+          </span>
+          <span class="badge bg-primary px-3 py-2 rounded-pill">
+            <span id="answered">0</span> / {{ questions|length }} Questions
+          </span>
+        </div>
+        <div class="progress mt-2" style="height: 6px; border-radius: 10px;">
+          <div class="progress-bar" id="progressBar" role="progressbar" style="width: 0%; background: var(--primary-gradient); border-radius: 10px; transition: width 0.3s ease;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Questions -->
+    {% for question in questions %}
+    <div class="card mb-4 question-card" data-question="{{ forloop.counter }}" style="transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);">
+      <div class="card-body p-4">
+        <!-- Question Header -->
+        <div class="d-flex align-items-start mb-4">
+          <div class="question-number me-3">
+            <div class="d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; background: var(--primary-gradient); border-radius: 50%; color: white; font-weight: bold; font-size: 1.1rem;">
+              {{ forloop.counter }}
+            </div>
+          </div>
+          <div class="flex-grow-1">
+            <h5 class="mb-0 fw-semibold lh-base">{{ question.text }}</h5>
+          </div>
+        </div>
+
+        <!-- Options -->
+        <div class="options-container">
+          <!-- Option A -->
+          <div class="form-check mb-3 option-item" style="transition: all 0.3s ease;">
+            <input 
+              class="form-check-input option-radio" 
+              type="radio" 
+              name="{{ question.id }}" 
+              value="A" 
+              id="q{{ question.id }}A" 
+              required
+              style="transform: scale(1.2); margin-top: 0.35rem;"
+            >
+            <label 
+              class="form-check-label w-100 p-3 rounded-3 option-label" 
+              for="q{{ question.id }}A"
+              style="
+                cursor: pointer; 
+                border: 2px solid var(--border-light); 
+                background: var(--surface-light);
+                transition: all 0.3s ease;
+                margin-left: 0.5rem;
+                font-weight: 500;
+              "
+            >
+              <span class="option-letter me-3 fw-bold text-primary">A</span>
+              {{ question.option_a }}
+            </label>
+          </div>
+
+          <!-- Option B -->
+          <div class="form-check mb-3 option-item" style="transition: all 0.3s ease;">
+            <input 
+              class="form-check-input option-radio" 
+              type="radio" 
+              name="{{ question.id }}" 
+              value="B" 
+              id="q{{ question.id }}B" 
+              required
+              style="transform: scale(1.2); margin-top: 0.35rem;"
+            >
+            <label 
+              class="form-check-label w-100 p-3 rounded-3 option-label" 
+              for="q{{ question.id }}B"
+              style="
+                cursor: pointer; 
+                border: 2px solid var(--border-light); 
+                background: var(--surface-light);
+                transition: all 0.3s ease;
+                margin-left: 0.5rem;
+                font-weight: 500;
+              "
+            >
+              <span class="option-letter me-3 fw-bold text-primary">B</span>
+              {{ question.option_b }}
+            </label>
+          </div>
+
+          <!-- Option C -->
+          <div class="form-check mb-3 option-item" style="transition: all 0.3s ease;">
+            <input 
+              class="form-check-input option-radio" 
+              type="radio" 
+              name="{{ question.id }}" 
+              value="C" 
+              id="q{{ question.id }}C" 
+              required
+              style="transform: scale(1.2); margin-top: 0.35rem;"
+            >
+            <label 
+              class="form-check-label w-100 p-3 rounded-3 option-label" 
+              for="q{{ question.id }}C"
+              style="
+                cursor: pointer; 
+                border: 2px solid var(--border-light); 
+                background: var(--surface-light);
+                transition: all 0.3s ease;
+                margin-left: 0.5rem;
+                font-weight: 500;
+              "
+            >
+              <span class="option-letter me-3 fw-bold text-primary">C</span>
+              {{ question.option_c }}
+            </label>
+          </div>
+
+          <!-- Option D -->
+          <div class="form-check mb-3 option-item" style="transition: all 0.3s ease;">
+            <input 
+              class="form-check-input option-radio" 
+              type="radio" 
+              name="{{ question.id }}" 
+              value="D" 
+              id="q{{ question.id }}D" 
+              required
+              style="transform: scale(1.2); margin-top: 0.35rem;"
+            >
+            <label 
+              class="form-check-label w-100 p-3 rounded-3 option-label" 
+              for="q{{ question.id }}D"
+              style="
+                cursor: pointer; 
+                border: 2px solid var(--border-light); 
+                background: var(--surface-light);
+                transition: all 0.3s ease;
+                margin-left: 0.5rem;
+                font-weight: 500;
+              "
+            >
+              <span class="option-letter me-3 fw-bold text-primary">D</span>
+              {{ question.option_d }}
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+
+    <!-- Submit Button -->
+    <div class="d-flex justify-content-center mt-5">
+      <button 
+        type="submit" 
+        class="btn btn-primary btn-lg px-5 py-3 fw-bold"
+        style="
+          background: var(--primary-gradient);
+          border: none;
+          border-radius: 20px;
+          box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+          transition: all 0.3s ease;
+          min-width: 200px;
+        "
+        onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 12px 35px rgba(102, 126, 234, 0.4)'"
+        onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 25px rgba(102, 126, 234, 0.3)'"
+      >
+        <i class="fas fa-paper-plane me-2"></i>Submit Section
+      </button>
+    </div>
+  </form>
+</div>
+
+<style>
+/* Enhanced MCQ-specific styles */
+.question-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-hover-light);
+}
+
+.dark-mode .question-card:hover {
+  box-shadow: var(--shadow-hover-dark);
+}
+
+.option-item:hover .option-label {
+  background: var(--glass-bg) !important;
+  border-color: rgba(102, 126, 234, 0.3) !important;
+  transform: translateX(5px);
+}
+
+.dark-mode .option-item:hover .option-label {
+  background: var(--glass-bg-dark) !important;
+  border-color: rgba(102, 126, 234, 0.4) !important;
+}
+
+.option-radio:checked + .option-label {
+  background: var(--primary-gradient) !important;
+  color: white !important;
+  border-color: transparent !important;
+  transform: scale(1.02);
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.option-radio:checked + .option-label .option-letter {
+  color: white !important;
+}
+
+.dark-mode .option-label {
+  background: var(--surface-dark) !important;
+  border-color: var(--border-dark) !important;
+  color: var(--text-primary-dark) !important;
+}
+
+.question-number {
+  position: relative;
+}
+
+.question-number::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 60px;
+  height: 60px;
+  background: var(--primary-gradient);
+  border-radius: 50%;
+  opacity: 0.1;
+  transform: translate(-50%, -50%);
+  z-index: -1;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.1;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.1);
+    opacity: 0.2;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.1;
+  }
+}
+
+/* Custom radio button styling */
+.option-radio {
+  accent-color: #667eea;
+}
+
+/* Progress bar animation */
+.progress-bar {
+  background: var(--primary-gradient) !important;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .question-number {
+    margin-bottom: 1rem;
+  }
+  
+  .d-flex.align-items-start {
+    flex-direction: column;
+  }
+  
+  .option-label {
+    margin-left: 0 !important;
+    margin-top: 0.5rem;
+  }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const form = document.getElementById('quizForm');
+  const progressBar = document.getElementById('progressBar');
+  const answeredCount = document.getElementById('answered');
+  const totalQuestions = {{ questions|length }};
+  
+  // Update progress when options are selected
+  function updateProgress() {
+    const answeredQuestions = form.querySelectorAll('input[type="radio"]:checked').length;
+    const percentage = (answeredQuestions / totalQuestions) * 100;
+    
+    progressBar.style.width = percentage + '%';
+    answeredCount.textContent = answeredQuestions;
+    
+    // Add completion animation
+    if (answeredQuestions === totalQuestions) {
+      progressBar.style.background = 'var(--success-gradient)';
+      progressBar.parentElement.style.boxShadow = '0 0 20px rgba(79, 172, 254, 0.3)';
+    } else {
+      progressBar.style.background = 'var(--primary-gradient)';
+      progressBar.parentElement.style.boxShadow = 'none';
+    }
+  }
+  
+  // Add event listeners to all radio buttons
+  const radioButtons = form.querySelectorAll('input[type="radio"]');
+  radioButtons.forEach(radio => {
+    radio.addEventListener('change', updateProgress);
+  });
+  
+  // Add smooth scroll to next question when answered
+  radioButtons.forEach((radio, index) => {
+    radio.addEventListener('change', function() {
+      setTimeout(() => {
+        const currentCard = this.closest('.question-card');
+        const nextCard = currentCard.nextElementSibling;
+        
+        if (nextCard && nextCard.classList.contains('question-card')) {
+          nextCard.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'center' 
+          });
+        }
+      }, 300);
+    });
+  });
+  
+  // Form submission validation with smooth feedback
+  form.addEventListener('submit', function(e) {
+    const answeredQuestions = form.querySelectorAll('input[type="radio"]:checked').length;
+    
+    if (answeredQuestions < totalQuestions) {
+      e.preventDefault();
+      
+      // Highlight unanswered questions
+      const questionCards = form.querySelectorAll('.question-card');
+      questionCards.forEach(card => {
+        const radios = card.querySelectorAll('input[type="radio"]');
+        const isAnswered = Array.from(radios).some(radio => radio.checked);
+        
+        if (!isAnswered) {
+          card.style.border = '2px solid #f5576c';
+          card.style.animation = 'shake 0.5s ease-in-out';
+          
+          setTimeout(() => {
+            card.style.border = '';
+            card.style.animation = '';
+          }, 2000);
+        }
+      });
+      
+      // Show modern alert with styling
+      const alertDiv = document.createElement('div');
+      alertDiv.className = 'alert alert-warning alert-dismissible fade show position-fixed';
+      alertDiv.style.cssText = `
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 9999;
+        border-radius: 20px;
+        backdrop-filter: blur(10px);
+        border: none;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        max-width: 400px;
+      `;
+      alertDiv.innerHTML = `
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        Please answer all questions. ${totalQuestions - answeredQuestions} question(s) remaining.
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      `;
+      document.body.appendChild(alertDiv);
+      
+      // Auto remove after 5 seconds
+      setTimeout(() => {
+        if (alertDiv.parentNode) {
+          alertDiv.remove();
+        }
+      }, 5000);
+    }
+  });
+});
+
+// Shake animation for unanswered questions
+const style = document.createElement('style');
+style.textContent = `
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+  }
+`;
+document.head.appendChild(style);
+</script>
+{% endblock %}

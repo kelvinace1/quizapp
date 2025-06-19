@@ -1,0 +1,11 @@
+{% extends 'quizapp/base.html' %}
+{% block title %}Completed{% endblock %}
+
+{% block content %}
+<div class="alert alert-success text-center">
+    <h2>🎉 You’ve completed all sections!</h2>
+    <p>Great job! You’ve passed Easy, Medium, and Hard.</p>
+    <a href="{% url 'quiz_list' course.id %}" class="btn btn-success mt-3">Back to Quizzes</a>
+
+</div>
+{% endblock %}

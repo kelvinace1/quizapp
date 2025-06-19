@@ -1,0 +1,604 @@
+{% extends 'quizapp/base.html' %}
+
+{% block title %}Available Courses{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="hero-section text-center mb-5">
+  <div class="hero-content">
+    <h1 class="hero-title">
+      <i class="fas fa-graduation-cap me-3"></i>
+      Explore Our Courses
+    </h1>
+    <p class="hero-subtitle">
+      Discover engaging courses and challenge yourself with interactive quizzes
+    </p>
+    <div class="hero-stats">
+      <div class="stat-item">
+        <i class="fas fa-book-open"></i>
+        <span>{{ courses|length }} Course{{ courses|length|pluralize }}</span>
+      </div>
+      <div class="stat-item">
+        <i class="fas fa-users"></i>
+        <span>Join thousands of learners</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Courses Grid -->
+<div class="courses-grid">
+  {% for course in courses %}
+  <div class="course-card-wrapper">
+    <div class="course-card" data-course-id="{{ course.id }}">
+      <!-- Course Image -->
+      <div class="course-image-container">
+        {% if course.image %}
+        <img src="{{ course.image.url }}" class="course-image" alt="{{ course.name }}">
+        {% else %}
+        <div class="course-image-placeholder">
+          <i class="fas fa-book-open"></i>
+        </div>
+        {% endif %}
+        <div class="course-overlay">
+          <div class="course-badge">
+            <i class="fas fa-star"></i>
+            <span>Premium</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Course Content -->
+      <div class="course-content">
+        <div class="course-header">
+          <h3 class="course-title">{{ course.name }}</h3>
+          <div class="course-meta">
+            <span class="course-level">
+              <i class="fas fa-signal"></i>
+              Beginner
+            </span>
+          </div>
+        </div>
+        
+        <p class="course-description">
+          {{ course.description|truncatewords:15 }}
+        </p>
+        
+        <div class="course-stats">
+          <div class="stat">
+            <i class="fas fa-clock"></i>
+            <span>2-3 hours</span>
+          </div>
+          <div class="stat">
+            <i class="fas fa-question-circle"></i>
+            <span>Multiple quizzes</span>
+          </div>
+        </div>
+        
+        <div class="course-actions">
+          <a href="{% url 'quiz_list' course_id=course.id %}" class="btn-primary-modern">
+            <span>Start Learning</span>
+            <i class="fas fa-arrow-right"></i>
+          </a>
+          <button class="btn-secondary-modern" onclick="toggleFavorite({{ course.id }})">
+            <i class="far fa-heart"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% empty %}
+  <div class="empty-state">
+    <div class="empty-icon">
+      <i class="fas fa-book-open"></i>
+    </div>
+    <h3>No Courses Available</h3>
+    <p>We're working hard to bring you amazing courses. Check back soon!</p>
+    <a href="{% url 'create_course' %}" class="btn-primary-modern">
+      <i class="fas fa-plus"></i>
+      <span>Create First Course</span>
+    </a>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- Course List Specific Styles -->
+<style>
+  /* Hero Section */
+  .hero-section {
+    padding: 3rem 0;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .hero-content {
+    position: relative;
+    z-index: 2;
+  }
+  
+  .hero-title {
+    font-size: 3.5rem;
+    font-weight: 800;
+    background: var(--primary-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 1rem;
+    line-height: 1.2;
+  }
+  
+  .hero-subtitle {
+    font-size: 1.25rem;
+    color: var(--text-secondary-light);
+    margin-bottom: 2rem;
+    font-weight: 400;
+  }
+  
+  .dark-mode .hero-subtitle {
+    color: var(--text-secondary-dark);
+  }
+  
+  .hero-stats {
+    display: flex;
+    justify-content: center;
+    gap: 3rem;
+    flex-wrap: wrap;
+  }
+  
+  .stat-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 500;
+    color: var(--text-secondary-light);
+  }
+  
+  .dark-mode .stat-item {
+    color: var(--text-secondary-dark);
+  }
+  
+  .stat-item i {
+    color: #667eea;
+    font-size: 1.1rem;
+  }
+  
+  /* Courses Grid */
+  .courses-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 2rem;
+    margin-top: 2rem;
+  }
+  
+  /* Course Card */
+  .course-card-wrapper {
+    height: 100%;
+  }
+  
+  .course-card {
+    background: var(--surface-light);
+    border: 1px solid var(--border-light);
+    border-radius: 24px;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: var(--shadow-light);
+    backdrop-filter: blur(20px);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    cursor: pointer;
+  }
+  
+  .course-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    transition: left 0.6s ease;
+    z-index: 1;
+  }
+  
+  .course-card:hover {
+    transform: translateY(-12px) scale(1.02);
+    box-shadow: var(--shadow-hover-light);
+  }
+  
+  .course-card:hover::before {
+    left: 100%;
+  }
+  
+  .dark-mode .course-card {
+    background: var(--surface-dark);
+    border-color: var(--border-dark);
+    box-shadow: var(--shadow-dark);
+  }
+  
+  .dark-mode .course-card:hover {
+    box-shadow: var(--shadow-hover-dark);
+  }
+  
+  /* Course Image */
+  .course-image-container {
+    position: relative;
+    height: 200px;
+    overflow: hidden;
+  }
+  
+  .course-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+  }
+  
+  .course-card:hover .course-image {
+    transform: scale(1.1);
+  }
+  
+  .course-image-placeholder {
+    width: 100%;
+    height: 100%;
+    background: var(--primary-gradient);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 3rem;
+  }
+  
+  .course-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.3) 100%);
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-end;
+    padding: 1rem;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  
+  .course-card:hover .course-overlay {
+    opacity: 1;
+  }
+  
+  .course-badge {
+    background: rgba(255, 255, 255, 0.9);
+    color: #667eea;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    backdrop-filter: blur(10px);
+  }
+  
+  /* Course Content */
+  .course-content {
+    padding: 2rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    z-index: 2;
+  }
+  
+  .course-header {
+    margin-bottom: 1rem;
+  }
+  
+  .course-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary-light);
+    margin-bottom: 0.5rem;
+    line-height: 1.3;
+  }
+  
+  .dark-mode .course-title {
+    color: var(--text-primary-dark);
+  }
+  
+  .course-meta {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  
+  .course-level {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-secondary-light);
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+  
+  .dark-mode .course-level {
+    color: var(--text-secondary-dark);
+  }
+  
+  .course-description {
+    color: var(--text-secondary-light);
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+    flex: 1;
+  }
+  
+  .dark-mode .course-description {
+    color: var(--text-secondary-dark);
+  }
+  
+  .course-stats {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+  }
+  
+  .stat {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-secondary-light);
+    font-size: 0.875rem;
+  }
+  
+  .dark-mode .stat {
+    color: var(--text-secondary-dark);
+  }
+  
+  .stat i {
+    color: #667eea;
+  }
+  
+  /* Modern Buttons */
+  .course-actions {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+  }
+  
+  .btn-primary-modern {
+    background: var(--primary-gradient);
+    color: white;
+    text-decoration: none;
+    padding: 0.875rem 1.5rem;
+    border-radius: 16px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    flex: 1;
+    justify-content: center;
+    border: none;
+    cursor: pointer;
+  }
+  
+  .btn-primary-modern:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+    color: white;
+    text-decoration: none;
+  }
+  
+  .btn-secondary-modern {
+    background: rgba(102, 126, 234, 0.1);
+    color: #667eea;
+    border: 2px solid rgba(102, 126, 234, 0.2);
+    padding: 0.875rem;
+    border-radius: 16px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .btn-secondary-modern:hover {
+    background: rgba(102, 126, 234, 0.2);
+    transform: scale(1.1);
+  }
+  
+  .dark-mode .btn-secondary-modern {
+    background: rgba(102, 126, 234, 0.2);
+    color: #a5b4fc;
+    border-color: rgba(102, 126, 234, 0.3);
+  }
+  
+  /* Empty State */
+  .empty-state {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 4rem 2rem;
+    background: var(--surface-light);
+    border-radius: 24px;
+    border: 1px solid var(--border-light);
+    box-shadow: var(--shadow-light);
+  }
+  
+  .dark-mode .empty-state {
+    background: var(--surface-dark);
+    border-color: var(--border-dark);
+    box-shadow: var(--shadow-dark);
+  }
+  
+  .empty-icon {
+    font-size: 4rem;
+    color: var(--text-secondary-light);
+    margin-bottom: 1rem;
+  }
+  
+  .dark-mode .empty-icon {
+    color: var(--text-secondary-dark);
+  }
+  
+  .empty-state h3 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary-light);
+    margin-bottom: 0.5rem;
+  }
+  
+  .dark-mode .empty-state h3 {
+    color: var(--text-primary-dark);
+  }
+  
+  .empty-state p {
+    color: var(--text-secondary-light);
+    margin-bottom: 2rem;
+  }
+  
+  .dark-mode .empty-state p {
+    color: var(--text-secondary-dark);
+  }
+  
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .hero-title {
+      font-size: 2.5rem;
+    }
+    
+    .hero-stats {
+      gap: 1.5rem;
+    }
+    
+    .courses-grid {
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+    }
+    
+    .course-content {
+      padding: 1.5rem;
+    }
+    
+    .course-actions {
+      flex-direction: column;
+    }
+    
+    .btn-secondary-modern {
+      align-self: flex-end;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .hero-title {
+      font-size: 2rem;
+    }
+    
+    .hero-stats {
+      flex-direction: column;
+      gap: 1rem;
+    }
+  }
+  
+  /* Loading Animation */
+  .course-card {
+    animation: fadeInUp 0.6s ease-out;
+  }
+  
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  /* Staggered Animation */
+  .course-card:nth-child(1) { animation-delay: 0.1s; }
+  .course-card:nth-child(2) { animation-delay: 0.2s; }
+  .course-card:nth-child(3) { animation-delay: 0.3s; }
+  .course-card:nth-child(4) { animation-delay: 0.4s; }
+  .course-card:nth-child(5) { animation-delay: 0.5s; }
+  .course-card:nth-child(6) { animation-delay: 0.6s; }
+</style>
+
+<script>
+  // Add interactive functionality
+  document.addEventListener('DOMContentLoaded', function() {
+    // Add click animation to course cards
+    const courseCards = document.querySelectorAll('.course-card');
+    
+    courseCards.forEach(card => {
+      card.addEventListener('click', function(e) {
+        // Don't trigger if clicking on buttons
+        if (e.target.closest('.course-actions')) return;
+        
+        // Add ripple effect
+        const ripple = document.createElement('div');
+        ripple.style.cssText = `
+          position: absolute;
+          border-radius: 50%;
+          background: rgba(102, 126, 234, 0.3);
+          pointer-events: none;
+          transform: scale(0);
+          animation: ripple 0.6s linear;
+          width: 100px;
+          height: 100px;
+          left: ${e.offsetX - 50}px;
+          top: ${e.offsetY - 50}px;
+        `;
+        
+        this.appendChild(ripple);
+        
+        setTimeout(() => {
+          ripple.remove();
+        }, 600);
+      });
+    });
+  });
+  
+  // Favorite toggle functionality
+  function toggleFavorite(courseId) {
+    const button = event.target.closest('.btn-secondary-modern');
+    const icon = button.querySelector('i');
+    
+    if (icon.classList.contains('far')) {
+      icon.classList.remove('far');
+      icon.classList.add('fas');
+      button.style.background = 'rgba(245, 87, 108, 0.1)';
+      button.style.color = '#f5576c';
+      button.style.borderColor = 'rgba(245, 87, 108, 0.3)';
+    } else {
+      icon.classList.remove('fas');
+      icon.classList.add('far');
+      button.style.background = 'rgba(102, 126, 234, 0.1)';
+      button.style.color = '#667eea';
+      button.style.borderColor = 'rgba(102, 126, 234, 0.2)';
+    }
+    
+    // Add a small bounce animation
+    button.style.transform = 'scale(1.2)';
+    setTimeout(() => {
+      button.style.transform = 'scale(1)';
+    }, 150);
+  }
+  
+  // Add CSS for ripple animation
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes ripple {
+      to {
+        transform: scale(4);
+        opacity: 0;
+      }
+    }
+  `;
+  document.head.appendChild(style);
+</script>
+{% endblock %}

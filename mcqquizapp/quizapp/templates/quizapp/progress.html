@@ -1,0 +1,914 @@
+{% extends 'quizapp/base.html' %}
+{% block title %}Your Progress{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-11 col-xl-10">
+    <!-- Header Section -->
+    <div class="dashboard-header text-center mb-5">
+      <div class="header-icon mb-3">
+        <i class="fas fa-chart-line"></i>
+      </div>
+      <h2 class="dashboard-title mb-3">Your Learning Journey</h2>
+      <p class="dashboard-subtitle">Track your quiz performance and celebrate your achievements</p>
+    </div>
+
+    <!-- Stats Overview Cards -->
+    <div class="row g-4 mb-5">
+      <div class="col-md-3 col-sm-6">
+        <div class="stat-card">
+          <div class="stat-icon">
+            <i class="fas fa-trophy"></i>
+          </div>
+          <div class="stat-content">
+            <div class="stat-value">{{ progress|length }}</div>
+            <div class="stat-label">Total Attempts</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3 col-sm-6">
+        <div class="stat-card">
+          <div class="stat-icon success">
+            <i class="fas fa-check-circle"></i>
+          </div>
+          <div class="stat-content">
+            <div class="stat-value">{% comment %}Calculate passed count in view{% endcomment %}{{progress|length}} </div>
+            <div class="stat-label">Passed</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3 col-sm-6">
+        <div class="stat-card">
+          <div class="stat-icon warning">
+            <i class="fas fa-percentage"></i>
+          </div>
+          <div class="stat-content">
+            <div class="stat-value">{% if progress %}85{% else %}0{% endif %}%</div>
+            <div class="stat-label">Avg Score</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3 col-sm-6">
+        <div class="stat-card">
+          <div class="stat-icon info">
+            <i class="fas fa-fire"></i>
+          </div>
+          <div class="stat-content">
+            <div class="stat-value">0</div>
+            <div class="stat-label">Day Streak</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chart Container -->
+    <div class="card chart-card mb-5">
+      <div class="card-body p-4">
+        <div class="chart-header mb-4">
+          <h5 class="chart-title">
+            <i class="fas fa-bar-chart me-2"></i>
+            Performance Overview
+          </h5>
+          <p class="chart-subtitle">Your scores across different quiz sections</p>
+        </div>
+        {% if progress %}
+          <div class="chart-container">
+            <canvas id="progressChart"></canvas>
+          </div>
+        {% else %}
+          <div class="empty-chart">
+            <div class="empty-icon">
+              <i class="fas fa-chart-bar"></i>
+            </div>
+            <h5 class="empty-title">No Data Yet</h5>
+            <p class="empty-text">Take your first quiz to see your progress here!</p>
+            <a href="{% url 'course_list' %}" class="btn btn-primary mt-3">
+              <i class="fas fa-play me-2"></i>Start Learning
+            </a>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Progress Table -->
+    <div class="card progress-table-card">
+      <div class="card-body p-0">
+        <div class="table-header p-4 pb-0">
+          <h5 class="table-title">
+            <i class="fas fa-list-alt me-2"></i>
+            Detailed Progress
+          </h5>
+          <p class="table-subtitle">Complete breakdown of your quiz attempts</p>
+        </div>
+        
+        {% if progress %}
+          <div class="table-responsive">
+            <table class="table progress-table mb-0">
+              <thead>
+                <tr>
+                  <th scope="col">
+                    <div class="th-content">
+                      <i class="fas fa-book me-2"></i>Quiz
+                    </div>
+                  </th>
+                  <th scope="col">
+                    <div class="th-content">
+                      <i class="fas fa-layer-group me-2"></i>Section
+                    </div>
+                  </th>
+                  <th scope="col" class="text-center">
+                    <div class="th-content">
+                      <i class="fas fa-percentage me-2"></i>Score
+                    </div>
+                  </th>
+                  <th scope="col" class="text-center">
+                    <div class="th-content">
+                      <i class="fas fa-medal me-2"></i>Status
+                    </div>
+                  </th>
+                  <th scope="col" class="text-center">
+                    <div class="th-content">
+                      <i class="fas fa-redo me-2"></i>Action
+                    </div>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for p in progress %}
+                <tr class="progress-row">
+                  <td>
+                    <div class="quiz-info">
+                      <div class="quiz-title">{{ p.section.quiz.title }}</div>
+                      <div class="quiz-meta">Quiz Section</div>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="difficulty-badge difficulty-{{ p.section.difficulty|lower }}">
+                      <i class="fas fa-star me-1"></i>
+                      {{ p.section.difficulty|title }}
+                    </span>
+                  </td>
+                  <td class="text-center">
+                    <div class="score-display">
+                      <span class="score-value score-{{ p.score|floatformat:0 }}">{{ p.score }}%</span>
+                      <div class="score-bar">
+                        <div class="score-fill" style="width: {{ p.score }}%"></div>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="text-center">
+                    {% if p.passed %}
+                      <span class="status-badge status-passed">
+                        <i class="fas fa-check me-1"></i>Passed
+                      </span>
+                    {% else %}
+                      <span class="status-badge status-failed">
+                        <i class="fas fa-times me-1"></i>Failed
+                      </span>
+                    {% endif %}
+                  </td>
+                  <td class="text-center">
+                    <a href="{% url 'take_section' p.section.id %}" class="btn btn-sm btn-action">
+                      <i class="fas fa-redo me-1"></i>
+                      {% if p.passed %}Review{% else %}Retry{% endif %}
+                    </a>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <div class="empty-state p-5">
+            <div class="empty-icon">
+              <i class="fas fa-clipboard-list"></i>
+            </div>
+            <h5 class="empty-title">No Progress Data</h5>
+            <p class="empty-text">You haven't taken any quizzes yet. Start your learning journey today!</p>
+            <a href="{% url 'course_list' %}" class="btn btn-primary btn-lg mt-3">
+              <i class="fas fa-graduation-cap me-2"></i>Explore Courses
+            </a>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+/* Dashboard-specific styles with improved dark mode */
+.dashboard-header {
+  margin-bottom: 3rem;
+}
+
+.header-icon {
+  width: 80px;
+  height: 80px;
+  background: var(--primary-gradient);
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  color: white;
+  animation: pulse 2s infinite;
+  box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
+}
+
+.dark-mode .header-icon {
+  box-shadow: 0 8px 32px rgba(102, 126, 234, 0.4);
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.dashboard-title {
+  font-weight: 800;
+  font-size: 2.5rem;
+  background: var(--primary-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.dashboard-subtitle {
+  font-size: 1.2rem;
+  color: var(--text-secondary-light);
+  margin-bottom: 0;
+}
+
+.dark-mode .dashboard-subtitle {
+  color: var(--text-secondary-dark);
+}
+
+/* Stats Cards - Enhanced Dark Mode */
+.stat-card {
+  background: var(--surface-light);
+  border: 1px solid var(--border-light);
+  border-radius: 20px;
+  padding: 2rem 1.5rem;
+  text-align: center;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(20px);
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-light);
+}
+
+.dark-mode .stat-card {
+  background: var(--surface-dark);
+  border-color: var(--border-dark);
+  box-shadow: var(--shadow-dark);
+}
+
+.stat-card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-hover-light);
+}
+
+.dark-mode .stat-card:hover {
+  box-shadow: var(--shadow-hover-dark);
+}
+
+.stat-icon {
+  width: 60px;
+  height: 60px;
+  background: var(--primary-gradient);
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: white;
+  margin-bottom: 1rem;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.stat-icon.success {
+  background: var(--success-gradient);
+  box-shadow: 0 4px 15px rgba(79, 172, 254, 0.3);
+}
+
+.stat-icon.warning {
+  background: linear-gradient(135deg, #ffeaa7 0%, #fab1a0 100%);
+  box-shadow: 0 4px 15px rgba(255, 234, 167, 0.3);
+}
+
+.stat-icon.info {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.stat-value {
+  font-size: 2.5rem;
+  font-weight: 800;
+  line-height: 1;
+  margin-bottom: 0.5rem;
+  background: var(--primary-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.stat-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-secondary-light);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.dark-mode .stat-label {
+  color: var(--text-secondary-dark);
+}
+
+/* Chart Card - Enhanced Dark Mode */
+.chart-card {
+  position: relative;
+  background: var(--surface-light);
+  border: 1px solid var(--border-light);
+}
+
+.dark-mode .chart-card {
+  background: var(--surface-dark);
+  border-color: var(--border-dark);
+}
+
+.chart-header {
+  text-align: center;
+}
+
+.chart-title {
+  font-weight: 700;
+  font-size: 1.4rem;
+  color: var(--text-primary-light);
+  margin-bottom: 0.5rem;
+}
+
+.dark-mode .chart-title {
+  color: var(--text-primary-dark);
+}
+
+.chart-subtitle {
+  color: var(--text-secondary-light);
+  margin-bottom: 0;
+}
+
+.dark-mode .chart-subtitle {
+  color: var(--text-secondary-dark);
+}
+
+.chart-container {
+  position: relative;
+  height: 400px;
+}
+
+.empty-chart,
+.empty-state {
+  text-align: center;
+  padding: 3rem 2rem;
+}
+
+.empty-icon {
+  width: 80px;
+  height: 80px;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  color: var(--text-secondary-light);
+  margin-bottom: 1.5rem;
+  border: 2px solid rgba(102, 126, 234, 0.2);
+}
+
+.dark-mode .empty-icon {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%);
+  color: var(--text-secondary-dark);
+  border-color: rgba(102, 126, 234, 0.3);
+}
+
+.empty-title {
+  font-weight: 700;
+  color: var(--text-primary-light);
+  margin-bottom: 1rem;
+}
+
+.dark-mode .empty-title {
+  color: var(--text-primary-dark);
+}
+
+.empty-text {
+  color: var(--text-secondary-light);
+  font-size: 1.1rem;
+  margin-bottom: 0;
+}
+
+.dark-mode .empty-text {
+  color: var(--text-secondary-dark);
+}
+
+/* Progress Table - Enhanced Dark Mode */
+.progress-table-card {
+  overflow: hidden;
+  background: var(--surface-light);
+  border: 1px solid var(--border-light);
+}
+
+.dark-mode .progress-table-card {
+  background: var(--surface-dark);
+  border-color: var(--border-dark);
+}
+
+.table-header {
+  background: var(--glass-bg);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border-light);
+}
+
+.dark-mode .table-header {
+  background: var(--glass-bg-dark);
+  border-bottom-color: var(--border-dark);
+}
+
+.table-title {
+  font-weight: 700;
+  color: var(--text-primary-light);
+  margin-bottom: 0.5rem;
+}
+
+.dark-mode .table-title {
+  color: var(--text-primary-dark);
+}
+
+.table-subtitle {
+  color: var(--text-secondary-light);
+  margin-bottom: 0;
+  font-size: 0.95rem;
+}
+
+.dark-mode .table-subtitle {
+  color: var(--text-secondary-dark);
+}
+
+.progress-table {
+  border: none;
+  background: transparent;
+}
+
+.progress-table thead th {
+  background: var(--glass-bg);
+  border: none;
+  border-bottom: 2px solid var(--border-light);
+  padding: 1.5rem 1rem;
+  font-weight: 600;
+  color: var(--text-primary-light);
+  backdrop-filter: blur(10px);
+}
+
+.dark-mode .progress-table thead th {
+  background: var(--glass-bg-dark);
+  border-bottom-color: var(--border-dark);
+  color: var(--text-primary-dark);
+}
+
+.th-content {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.th-content i {
+  opacity: 0.7;
+}
+
+.progress-row {
+  border: none;
+  transition: all 0.3s ease;
+  background: transparent;
+}
+
+.progress-row:hover {
+  background: var(--glass-bg) !important;
+  transform: scale(1.01);
+}
+
+.dark-mode .progress-row:hover {
+  background: var(--glass-bg-dark) !important;
+}
+
+.progress-row td {
+  padding: 1.5rem 1rem;
+  border: none;
+  border-bottom: 1px solid var(--border-light);
+  vertical-align: middle;
+  background: transparent;
+}
+
+.dark-mode .progress-row td {
+  border-bottom-color: var(--border-dark);
+}
+
+.quiz-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.quiz-title {
+  font-weight: 600;
+  color: var(--text-primary-light);
+  font-size: 1rem;
+}
+
+.dark-mode .quiz-title {
+  color: var(--text-primary-dark);
+}
+
+.quiz-meta {
+  font-size: 0.85rem;
+  color: var(--text-secondary-light);
+  margin-top: 0.25rem;
+}
+
+.dark-mode .quiz-meta {
+  color: var(--text-secondary-dark);
+}
+
+.difficulty-badge {
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: white;
+  display: inline-flex;
+  align-items: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.difficulty-easy {
+  background: var(--success-gradient);
+}
+
+.difficulty-medium {
+  background: linear-gradient(135deg, #ffeaa7 0%, #fab1a0 100%);
+}
+
+.difficulty-hard {
+  background: var(--secondary-gradient);
+}
+
+.score-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.score-value {
+  font-weight: 700;
+  font-size: 1.2rem;
+  margin-bottom: 0.5rem;
+  color: var(--text-primary-light);
+}
+
+.dark-mode .score-value {
+  color: var(--text-primary-dark);
+}
+
+.score-value.score-70,
+.score-value.score-80,
+.score-value.score-90,
+.score-value.score-100 {
+  color: #28a745 !important;
+}
+
+.score-value.score-50,
+.score-value.score-60 {
+  color: #ffc107 !important;
+}
+
+.score-value.score-0,
+.score-value.score-10,
+.score-value.score-20,
+.score-value.score-30,
+.score-value.score-40 {
+  color: #dc3545 !important;
+}
+
+.score-bar {
+  width: 60px;
+  height: 4px;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.dark-mode .score-bar {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.score-fill {
+  height: 100%;
+  background: var(--success-gradient);
+  border-radius: 2px;
+  transition: width 0.8s ease;
+}
+
+.status-badge {
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  display: inline-flex;
+  align-items: center;
+}
+
+.status-passed {
+  background: rgba(40, 167, 69, 0.15);
+  color: #28a745;
+  border: 2px solid rgba(40, 167, 69, 0.3);
+}
+
+.dark-mode .status-passed {
+  background: rgba(40, 167, 69, 0.2);
+  border-color: rgba(40, 167, 69, 0.4);
+}
+
+.status-failed {
+  background: rgba(220, 53, 69, 0.15);
+  color: #dc3545;
+  border: 2px solid rgba(220, 53, 69, 0.3);
+}
+
+.dark-mode .status-failed {
+  background: rgba(220, 53, 69, 0.2);
+  border-color: rgba(220, 53, 69, 0.4);
+}
+
+.btn-action {
+  background: var(--glass-bg);
+  border: 1px solid var(--border-light);
+  color: var(--text-primary-light);
+  border-radius: 12px;
+  padding: 0.5rem 1rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  text-decoration: none;
+}
+
+.dark-mode .btn-action {
+  background: var(--glass-bg-dark);
+  border-color: var(--border-dark);
+  color: var(--text-primary-dark);
+}
+
+.btn-action:hover {
+  background: var(--primary-gradient);
+  color: white !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  border-color: transparent;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .dashboard-title {
+    font-size: 2rem;
+  }
+  
+  .stat-card {
+    padding: 1.5rem 1rem;
+  }
+  
+  .stat-value {
+    font-size: 2rem;
+  }
+  
+  .chart-container {
+    height: 300px;
+  }
+  
+  .progress-table {
+    font-size: 0.9rem;
+  }
+  
+  .progress-row td {
+    padding: 1rem 0.5rem;
+  }
+  
+  .th-content {
+    font-size: 0.85rem;
+  }
+  
+  .quiz-title {
+    font-size: 0.9rem;
+  }
+  
+  .score-bar {
+    width: 40px;
+  }
+}
+
+/* Animation for table rows */
+.progress-row {
+  opacity: 0;
+  animation: slideIn 0.5s ease forwards;
+}
+
+.progress-row:nth-child(1) { animation-delay: 0.1s; }
+.progress-row:nth-child(2) { animation-delay: 0.2s; }
+.progress-row:nth-child(3) { animation-delay: 0.3s; }
+.progress-row:nth-child(4) { animation-delay: 0.4s; }
+.progress-row:nth-child(5) { animation-delay: 0.5s; }
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+</style>
+
+<!-- Chart.js Script with Enhanced Dark Mode Support -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  {% if progress %}
+  const labels = [
+    {% for p in progress %}
+      "{{ p.section.quiz.title|escapejs }} ({{ p.section.difficulty|title }})",
+    {% endfor %}
+  ];
+
+  const scores = [
+    {% for p in progress %}
+      {{ p.score }},
+    {% endfor %}
+  ];
+
+  const ctx = document.getElementById('progressChart').getContext('2d');
+  
+  // Dynamic theme detection with proper fallback
+  const checkDarkMode = () => document.body.classList.contains('dark-mode');
+  
+  // Create gradients for bars based on score
+  const createGradient = (ctx, score) => {
+    const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+    if (score >= 70) {
+      gradient.addColorStop(0, '#4facfe');
+      gradient.addColorStop(1, '#00f2fe');
+    } else if (score >= 50) {
+      gradient.addColorStop(0, '#ffeaa7');
+      gradient.addColorStop(1, '#fab1a0');
+    } else {
+      gradient.addColorStop(0, '#f093fb');
+      gradient.addColorStop(1, '#f5576c');
+    }
+    return gradient;
+  };
+
+  let progressChart;
+  
+  const createChart = () => {
+    const isDarkMode = checkDarkMode();
+    
+    // Destroy existing chart if it exists
+    if (progressChart) {
+      progressChart.destroy();
+    }
+    
+    progressChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Score (%)',
+          data: scores,
+          backgroundColor: scores.map(score => createGradient(ctx, score)),
+          borderWidth: 0,
+          borderRadius: 12,
+          borderSkipped: false,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: false
+          },
+          tooltip: {
+            backgroundColor: isDarkMode ? 'rgba(30, 30, 30, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+            titleColor: isDarkMode ? '#f7fafc' : '#2d3748',
+            bodyColor: isDarkMode ? '#e2e8f0' : '#4a5568',
+            borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.1)',
+            borderWidth: 1,
+            cornerRadius: 12,
+            padding: 12,
+            displayColors: false,
+            titleFont: {
+              weight: 600
+            },
+            bodyFont: {
+              weight: 500
+            },
+            callbacks: {
+              label: function(context) {
+                return 'Score: ' + context.parsed.y + '%';
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: {
+              display: false
+            },
+            ticks: {
+              color: isDarkMode ? '#e2e8f0' : '#4a5568',
+              font: {
+                weight: 500,
+                size: 12
+              },
+              maxRotation: 45
+            }
+          },
+          y: {
+            beginAtZero: true,
+            max: 100,
+            grid: {
+              color: isDarkMode ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)',
+              borderDash: [5, 5]
+            },
+            ticks: {
+              color: isDarkMode ? '#e2e8f0' : '#4a5568',
+              font: {
+                weight: 500,
+                size: 12
+              },
+              stepSize: 20,
+              callback: function(value) {
+                return value + '%';
+              }
+            }
+          }
+        },
+        animation: {
+          duration: 2000,
+          easing: 'easeOutQuart'
+        },
+        interaction: {
+          intersect: false,
+          mode: 'index'
+        }
+      }
+    });
+  };
+
+  // Initial chart creation
+  createChart();
+
+  // Listen for theme changes and recreate chart
+  const themeToggle = document.getElementById('toggle-theme');
+  if (themeToggle) {
+    themeToggle.addEventListener('click', () => {
+      setTimeout(createChart, 200); // Small delay to ensure theme has switched
+    });
+  }
+
+  // Add entrance animation to chart
+  setTimeout(() => {
+    if (progressChart) {
+      progressChart.update();
+    }
+  }, 500);
+  {% endif %}
+
+  // Add stagger animation to stat cards
+  const statCards = document.querySelectorAll('.stat-card');
+  statCards.forEach((card, index) => {
+    card.style.opacity = '0';
+    card.style.transform = 'translateY(30px)';
+    setTimeout(() => {
+      card.style.transition = 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
+      card.style.opacity = '1';
+      card.style.transform = 'translateY(0)';
+    }, index * 150);
+  });
+
+  // Add entrance animation to table rows
+  const tableRows = document.querySelectorAll('.progress-row');
+  tableRows.forEach((row, index) => {
+    row.style.animationDelay = `${(index + 1) * 0.1}s`;
+  });
+});
+</script>
+{% endblock %}
